@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" date="1241721334" format="1.1" version="1.2"}%
+%META:TOPICINFO{author="micha" comment="reprev" date="1252504561" format="1.1" reprev="1.2" version="1.2"}%
 ---+!! %TOPIC%
 
 This plugin generates PDF using the [[http://code.google.com/p/wkhtmltopdf/][Webkit rendering engine]].
@@ -13,9 +13,22 @@ Get a PDF by adding =contenttype=application/pdf= to the view url like this:
 Here's the complete Foswiki documentation in [[%SCRIPTURL{"view"}%/%SYSTEMWEB%/CompleteDocumentation?contenttype=application/pdf][PDF]].
 
 ---++ Installation
-You will have to download =wkhtmltopdf= from http://code.google.com/p/wkhtmltopdf/
+This extension comes with a static =wkhtmltopdf= binary version 0.8.3 for linux in your foswiki's tools directory.
+If you run on a different platform you will have to download it from http://code.google.com/p/wkhtmltopdf/.
 
 %$INSTALL_INSTRUCTIONS%
+
+---++ Known issues
+
+as of wkhtmltopdf-0.8.3
+
+   * links don't work even local #anchors don't do it; they are only drawn viually
+   * css style for media=print are not loaded
+   * the =&lt;base href="... />= html header must occur _before_ any other js or css files in the html source;
+     relative urls before are not resolved correctly
+   * there's no way to provide a base url on the command-line if a =&lt;base ...>= tag is missing in the html source
+   * a couple of important css3 features are not implemented yet, e.g. =::after=, =::before=, =leader()=, =target-counter()=, =@page=, =string-set=, =title=, =chapter=, =hyphens=
+
 
 ---++ Plugin Info
 <!--
