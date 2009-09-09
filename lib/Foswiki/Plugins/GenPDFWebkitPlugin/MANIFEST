@@ -1,0 +1,4 @@
+data/System/GenPDFWebkitPlugin.txt 0644
+lib/Foswiki/Plugins/GenPDFWebkitPlugin/Config.spec 0644
+lib/Foswiki/Plugins/GenPDFWebkitPlugin.pm 0644
+tools/wkhtmltopdf 0755
