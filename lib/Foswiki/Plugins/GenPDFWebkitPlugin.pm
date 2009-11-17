@@ -25,7 +25,7 @@ use Foswiki::Plugins ();
 use Error qw(:try);
 
 our $VERSION = '$Rev: 4419 (2009-07-03) $';
-our $RELEASE = '0.1';
+our $RELEASE = '0.21';
 our $SHORTDESCRIPTION = 'Generate PDF using Webkit';
 our $NO_PREFS_IN_TOPIC = 1;
 
@@ -68,7 +68,7 @@ sub completePageHandler {
   # create webkit command
   my $session = $Foswiki::Plugins::SESSION;
   my $pdfCmd = $Foswiki::cfg{GenPDFWebkitPlugin}{WebkitCmd} || 
-    $Foswiki::cfg{ToolsDir}.'/wkhtmltopdf -q %INFILE|F% %OUTFILE|F%';
+    '/usr/local/bin/wkhtmltopdf -q --enable-plugins --outline --print-media-type %INFILE|F% %OUTFILE|F%';
   
   # execute
   my ($output, $exit) = Foswiki::Sandbox->sysCommand(

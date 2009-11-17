@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1252504561" format="1.1" reprev="1.2" version="1.2"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1252512306" format="1.1" reprev="1.3" version="1.3"}%
 ---+!! %TOPIC%
 
 This plugin generates PDF using the [[http://code.google.com/p/wkhtmltopdf/][Webkit rendering engine]].
@@ -22,10 +22,9 @@ If you run on a different platform you will have to download it from http://code
 
 as of wkhtmltopdf-0.8.3
 
-   * links don't work even local #anchors don't do it; they are only drawn viually
-   * css style for media=print are not loaded
+   * links don't work even local #anchors don't do it; they are only drawn viually; [[http://code.google.com/p/wkhtmltopdf/issues/detail?id=39][bug report]]
    * the =&lt;base href="... />= html header must occur _before_ any other js or css files in the html source;
-     relative urls before are not resolved correctly
+     relative urls before are not resolved correctly (this is a general webkit problem &ndash; not a wkhtmltopdf issue)
    * there's no way to provide a base url on the command-line if a =&lt;base ...>= tag is missing in the html source
    * a couple of important css3 features are not implemented yet, e.g. =::after=, =::before=, =leader()=, =target-counter()=, =@page=, =string-set=, =title=, =chapter=, =hyphens=
 
@@ -40,6 +39,7 @@ as of wkhtmltopdf-0.8.3
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  17 Nov 2009 | fixed use of uninitialized value |
 |  09 Sep 2009 | initial release |
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
