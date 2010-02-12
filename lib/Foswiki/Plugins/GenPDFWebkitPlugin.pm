@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2010 Michael Daum http://michaeldaumconsulting.com
 #
 # This license applies to GenPDFWebkitPlugin *and also to any derivatives*
 #
@@ -25,7 +25,7 @@ use Foswiki::Plugins ();
 use Error qw(:try);
 
 our $VERSION = '$Rev: 4419 (2009-07-03) $';
-our $RELEASE = '0.21';
+our $RELEASE = '1.00';
 our $SHORTDESCRIPTION = 'Generate PDF using Webkit';
 our $NO_PREFS_IN_TOPIC = 1;
 

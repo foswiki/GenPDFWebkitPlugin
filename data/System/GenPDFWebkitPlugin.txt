@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1252512306" format="1.1" reprev="1.3" version="1.3"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1265996392" format="1.1" reprev="1.3" version="1.3"}%
 ---+!! %TOPIC%
 
 This plugin generates PDF using the [[http://code.google.com/p/wkhtmltopdf/][Webkit rendering engine]].
@@ -13,12 +13,17 @@ Get a PDF by adding =contenttype=application/pdf= to the view url like this:
 Here's the complete Foswiki documentation in [[%SCRIPTURL{"view"}%/%SYSTEMWEB%/CompleteDocumentation?contenttype=application/pdf][PDF]].
 
 ---++ Installation
-This extension comes with a static =wkhtmltopdf= binary version 0.8.3 for linux in your foswiki's tools directory.
+
+This extension comes with a static =wkhtmltopdf= binary version 0.9.1 for linux in your foswiki's tools directory.
 If you run on a different platform you will have to download it from http://code.google.com/p/wkhtmltopdf/.
 
 %$INSTALL_INSTRUCTIONS%
 
 ---++ Known issues
+
+as of wkhtmltopdf-0.9.1
+
+   * anchors still don't work: acroread throws a security exception
 
 as of wkhtmltopdf-0.8.3
 
@@ -34,11 +39,12 @@ as of wkhtmltopdf-0.8.3
    * Set SHORTDESCRIPTION = 'Generate PDF using Webkit';
 -->
 |  Author: | Foswiki:Main.MichaelDaum |
-|  Copyright: | &copy; 2009, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2010, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  12 Feb 2010 | upgraded to wkhtml-0.9.1 |
 |  17 Nov 2009 | fixed use of uninitialized value |
 |  09 Sep 2009 | initial release |
 |  Home: | Foswiki:Extensions/%TOPIC% |
