@@ -1,21 +1,21 @@
 #!/usr/bin/perl -w
 BEGIN {
-  foreach my $pc (split(/:/, $ENV{TWIKI_LIBS})) {
-    unshift @INC, $pc;
-  }
+    foreach my $pc ( split( /:/, $ENV{TWIKI_LIBS} ) ) {
+        unshift @INC, $pc;
+    }
 }
 
 use Foswiki::Contrib::Build;
 
 package BuildBuild;
 
-@BuildBuild::ISA = ( "Foswiki::Contrib::Build" );
+@BuildBuild::ISA = ("Foswiki::Contrib::Build");
 
 sub new {
-  my $class = shift;
-  return bless( $class->SUPER::new( "GenPDFWebkitPlugin" ), $class );
+    my $class = shift;
+    return bless( $class->SUPER::new("GenPDFWebkitPlugin"), $class );
 }
 
 $build = new BuildBuild();
 
-$build->build($build->{target});
+$build->build( $build->{target} );
