@@ -14,8 +14,8 @@ Here's the complete Foswiki documentation in [[%SCRIPTURL{"view"}%/%SYSTEMWEB%/C
 
 ---++ Installation
 
-This extension comes with a static =wkhtmltopdf= binary version 0.9.1 for linux in your foswiki's tools directory.
-If you run on a different platform you will have to download it from http://code.google.com/p/wkhtmltopdf/.
+Download =wkhtmltopdf= from http://code.google.com/p/wkhtmltopdf/ matching your platform and install it into the =tools/= directory of your 
+Foswiki installation. In case you installed it somewhere else use =configure= to point to the proper location.
 
 %$INSTALL_INSTRUCTIONS%
 
@@ -39,11 +39,12 @@ as of wkhtmltopdf-0.8.3
    * Set SHORTDESCRIPTION = 'Generate PDF using Webkit';
 -->
 |  Author: | Foswiki:Main.MichaelDaum |
-|  Copyright: | &copy; 2009-2010, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2013, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  12 Dec 2013 | align with changes in Foswiki:Extensions/GenPDFPrincePlugin |
 |  12 Feb 2010 | upgraded to wkhtml-0.9.1 |
 |  17 Nov 2009 | fixed use of uninitialized value |
 |  09 Sep 2009 | initial release |
