@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2014 Michael Daum http://michaeldaumconsulting.com
 #
 # This license applies to GenPDFWebkitPlugin *and also to any derivatives*
 #
@@ -23,22 +23,25 @@ use warnings;
 
 use Foswiki::Func ();
 use Foswiki::Plugins ();
+use Foswiki::Sandbox ();
 use Error qw(:try);
 use File::Path ();
 use Encode ();
+use File::Temp ();
 
-our $VERSION = '1.40';
-our $RELEASE = '1.40';
+our $VERSION = '1.50';
+our $RELEASE = '1.50';
 our $SHORTDESCRIPTION = 'Generate PDF using Webkit';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseTopic;
 our $baseWeb;
+our $doit = 0;
 
-use constant DEBUG => 0; # toggle me
+use constant TRACE => 0; # toggle me
 
 ###############################################################################
 sub writeDebug {
-  print STDERR "GenPDFWebkitPlugin - $_[0]\n" if DEBUG;
+  print STDERR "GenPDFWebkitPlugin - $_[0]\n" if TRACE;
 }
 
 ###############################################################################
@@ -51,6 +54,16 @@ sub initPlugin {
     return 0;
   }
 
+  my $query = Foswiki::Func::getCgiQuery();
+  my $contenttype = $query->param("contenttype") || 'text/html';
+
+  if ($contenttype eq "application/pdf") {
+    $doit = 1;
+    Foswiki::Func::getContext()->{static} = 1;
+  } else {
+    $doit = 0;
+  }
+
   return 1;
 }
 
@@ -58,16 +71,17 @@ sub initPlugin {
 sub completePageHandler {
   #my($html, $httpHeaders) = @_;
 
-  my $query = Foswiki::Func::getCgiQuery();
-  my $contenttype = $query->param("contenttype") || 'text/html';
+  return unless $doit;
 
-  # is this a pdf view?
-  return unless $contenttype eq "application/pdf";
+  my $siteCharSet = $Foswiki::cfg{Site}{CharSet};
+  
+  my $content = $_[0];
 
-  require File::Temp;
-  require Foswiki::Sandbox;
-
-  my $content = Encode::decode($Foswiki::cfg{Site}{CharSet}, $_[0]);
+  unless ($siteCharSet =~ /utf\-8/i) {
+    # convert to utf8
+    $content = Encode::decode($siteCharSet, $content);
+    $content = Encode::encode_utf8($content);
+  }
 
   # remove left-overs
   $content =~ s/([\t ]?)[ \t]*<\/?(nop|noautolink)\/?>/$1/gis;
@@ -79,18 +93,17 @@ sub completePageHandler {
   $content =~ s/(href=["'])\?.*(#[^"'\s])+/$1$2/g;
 
   # rewrite some urls to use file://..
-  #$content =~ s/(<link[^>]+href=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
+  $content =~ s/(<link[^>]+href=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
   $content =~ s/(<img[^>]+src=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
 
   # create temp files
-  my $htmlFile = new File::Temp(SUFFIX => '.html', UNLINK => (DEBUG ? 0 : 1));
-  my $errorFile = new File::Temp(SUFFIX => '.log', UNLINK => (DEBUG ? 0 : 1));
+  my $htmlFile = new File::Temp(SUFFIX => '.html', UNLINK => (TRACE ? 0 : 1));
+  my $errorFile = new File::Temp(SUFFIX => '.log', UNLINK => (TRACE ? 0 : 1));
 
   # create output filename
   my ($pdfFilePath, $pdfFile) = getFileName($baseWeb, $baseTopic);
 
   # creater html file
-  $content = Encode::encode($Foswiki::cfg{Site}{CharSet}, $content);
 
   binmode($htmlFile);
   print $htmlFile $content;
@@ -120,7 +133,7 @@ sub completePageHandler {
   writeDebug("htmlFile=" . $htmlFile->filename);
 
   my $error = '';
-  if ($exit || DEBUG) {
+  if ($exit || TRACE) {
     $error = <$errorFile>;
   }
 
@@ -142,6 +155,7 @@ sub completePageHandler {
   #);
   my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
 
+  my $query = Foswiki::Func::getCgiQuery();
   Foswiki::Func::redirectCgiQuery($query, $url);
 }
 
@@ -174,13 +188,6 @@ sub toFileUrl {
   if ($fileUrl =~ /^(?:$Foswiki::cfg{DefaultUrlHost})?$Foswiki::cfg{PubUrlPath}(.*)$/) {
     $fileUrl = $1;
     $fileUrl =~ s/\?.*$//;
-    if ($fileUrl =~ /^\/(.*)\/([^\/]+)\/[^\/]+$/) {
-      my $web = $1;
-      my $topic = $2;
-      my $wikiName = Foswiki::Func::getWikiName();
-      writeDebug("checking access for $wikiName on $web.$topic");
-      return '' unless Foswiki::Func::checkAccessPermission("VIEW", $wikiName, undef, $topic, $web);
-    }
     $fileUrl = "file://".$Foswiki::cfg{PubDir}.$fileUrl;
   } else {
     writeDebug("url=$url does not point to the local server");
@@ -194,14 +201,7 @@ sub toFileUrl {
 sub modifyHeaderHandler {
   my ($hopts, $request) = @_;
 
-  my $query = Foswiki::Func::getCgiQuery();
-  my $contenttype = $query->param("contenttype") || 'text/html';
-
-  # is this a pdf view?
-  return unless $contenttype eq "application/pdf";
-
-  # add disposition
-  $hopts->{'Content-Disposition'} = "inline;filename=$baseTopic.pdf";
+  $hopts->{'Content-Disposition'} = "inline;filename=$baseTopic.pdf" if $doit;
 }
 
 1;

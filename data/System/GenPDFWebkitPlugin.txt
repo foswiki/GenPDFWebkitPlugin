@@ -39,7 +39,7 @@ as of wkhtmltopdf-0.8.3
    * Set SHORTDESCRIPTION = 'Generate PDF using Webkit';
 -->
 |  Author: | Foswiki:Main.MichaelDaum |
-|  Copyright: | &copy; 2009-2013, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2014, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
