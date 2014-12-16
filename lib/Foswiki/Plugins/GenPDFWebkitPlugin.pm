@@ -29,8 +29,8 @@ use File::Path ();
 use Encode ();
 use File::Temp ();
 
-our $VERSION = '1.50';
-our $RELEASE = '1.50';
+our $VERSION = '1.60';
+our $RELEASE = '1.60';
 our $SHORTDESCRIPTION = 'Generate PDF using Webkit';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseTopic;
@@ -110,8 +110,7 @@ sub completePageHandler {
   writeDebug("htmlFile=" . $htmlFile->filename);
 
   # create webkit command
-  my $session = $Foswiki::Plugins::SESSION;
-  my $pubUrl = $session->getPubUrl(1);    # SMELL: unofficial api
+  my $pubUrl = getPubUrl();
   my $pdfCmd = $Foswiki::cfg{GenPDFWebkitPlugin}{WebkitCmd} || 
     '$Foswiki::cfg{ToolsDir}/wkhtmltopdf -q --enable-plugins --outline --print-media-type %INFILE|F% %OUTFILE|F%';
 
@@ -204,4 +203,16 @@ sub modifyHeaderHandler {
   $hopts->{'Content-Disposition'} = "inline;filename=$baseTopic.pdf" if $doit;
 }
 
+###############################################################################
+sub getPubUrl {
+  my $session = $Foswiki::Plugins::SESSION;
+
+  if ($session->can("getPubUrl")) {
+    # pre 1.2
+    return $session->getPubUrl(1);
+  } 
+
+  # post 1.2
+  return Foswiki::Func::getPubUrlPath(absolute=>1);
+}
 1;
