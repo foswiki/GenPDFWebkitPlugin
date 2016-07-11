@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2014 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2016 Michael Daum http://michaeldaumconsulting.com
 #
 # This license applies to GenPDFWebkitPlugin *and also to any derivatives*
 #
@@ -29,8 +29,8 @@ use File::Path ();
 use Encode ();
 use File::Temp ();
 
-our $VERSION = '1.60';
-our $RELEASE = '1.60';
+our $VERSION = '2.10';
+our $RELEASE = '11 Jul 2016';
 our $SHORTDESCRIPTION = 'Generate PDF using Webkit';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseTopic;
@@ -77,11 +77,9 @@ sub completePageHandler {
   
   my $content = $_[0];
 
-  unless ($siteCharSet =~ /utf\-8/i) {
-    # convert to utf8
-    $content = Encode::decode($siteCharSet, $content);
-    $content = Encode::encode_utf8($content);
-  }
+  # convert to utf8
+  $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
+  $content = Encode::encode_utf8($content);
 
   # remove left-overs
   $content =~ s/([\t ]?)[ \t]*<\/?(nop|noautolink)\/?>/$1/gis;
@@ -96,9 +94,12 @@ sub completePageHandler {
   $content =~ s/(<link[^>]+href=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
   $content =~ s/(<img[^>]+src=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
 
+  # fix base
+  my $baseUrl = Foswiki::Func::getScriptUrl($baseWeb, $baseTopic, "view");
+  $content =~ s/^(<base +href=["'])[^'"]*(["'].*)$/$1$baseUrl$2/m;
+
   # create temp files
   my $htmlFile = new File::Temp(SUFFIX => '.html', UNLINK => (TRACE ? 0 : 1));
-  my $errorFile = new File::Temp(SUFFIX => '.log', UNLINK => (TRACE ? 0 : 1));
 
   # create output filename
   my ($pdfFilePath, $pdfFile) = getFileName($baseWeb, $baseTopic);
@@ -111,51 +112,40 @@ sub completePageHandler {
 
   # create webkit command
   my $pubUrl = getPubUrl();
-  my $pdfCmd = $Foswiki::cfg{GenPDFWebkitPlugin}{WebkitCmd} || 
+  my $cmd = $Foswiki::cfg{GenPDFWebkitPlugin}{WebkitCmd} || 
     '$Foswiki::cfg{ToolsDir}/wkhtmltopdf -q --enable-plugins --outline --print-media-type %INFILE|F% %OUTFILE|F%';
 
-  writeDebug("pdfCmd=$pdfCmd");
-  writeDebug("BASEURL=$pubUrl");
+  writeDebug("cmd=$cmd");
   
   # execute
-  my ($output, $exit) = Foswiki::Sandbox->sysCommand(
-      $pdfCmd, 
-      BASEURL => $pubUrl,
+  my ($output, $exit, $error) = Foswiki::Sandbox->sysCommand(
+      $cmd, 
       OUTFILE => $pdfFilePath,
       INFILE => $htmlFile->filename,
-      ERROR => $errorFile->filename,
     );
 
   local $/ = undef;
 
-  writeDebug("errorFile=" . $errorFile->filename);
   writeDebug("htmlFile=" . $htmlFile->filename);
-
-  my $error = '';
-  if ($exit || TRACE) {
-    $error = <$errorFile>;
-  }
-
   writeDebug("error=$error");
   writeDebug("output=$output");
 
-  if ($exit) {
-    my $html = $content;
-    my $line = 1;
-    $html = '00000: '.$html;
-    $html =~ s/\n/"\n".(sprintf "\%05d", $line++).": "/ge;
-    throw Error::Simple("execution of wkhtmltopdf failed ($exit): \n\n$error\n\n$html");
-  }
-
-  # not using viewfile to let the web server decide how to deliver the static file
-  #my $url = Foswiki::Func::getScriptUrl($baseWeb, $baseTopic, 'viewfile',
-  #  filename=>$pdfFile,
-  #  t=>time(),
-  #);
-  my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
+  throw Error::Simple("execution of wkhtmltopdf failed ($exit): \n\n$error")
+    if $exit;
 
   my $query = Foswiki::Func::getCgiQuery();
-  Foswiki::Func::redirectCgiQuery($query, $url);
+  if (($query->param("pdfdisposition") || '') eq 'inline') {
+    my $session = $Foswiki::Plugins::SESSION;
+    my $pdf = readFile($pdfFilePath);
+    $session->{response}->body($pdf);
+
+    # SMELL: prevent compression
+    $ENV{'HTTP_ACCEPT_ENCODING'} = ''; 
+    $ENV{'HTTP2'} = ''; 
+  } else {
+    my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
+    Foswiki::Func::redirectCgiQuery($query, $url);
+  }
 }
 
 ###############################################################################
@@ -183,16 +173,18 @@ sub toFileUrl {
   my $url = shift;
 
   my $fileUrl = $url;
+  my $localServerPattern = '^(?:'.$Foswiki::cfg{DefaultUrlHost}.')?'.$Foswiki::cfg{PubUrlPath}.'(.*)$';
+  $localServerPattern =~ s/https?/https?/;
 
-  if ($fileUrl =~ /^(?:$Foswiki::cfg{DefaultUrlHost})?$Foswiki::cfg{PubUrlPath}(.*)$/) {
+  if ($fileUrl =~ /$localServerPattern/) {
     $fileUrl = $1;
     $fileUrl =~ s/\?.*$//;
     $fileUrl = "file://".$Foswiki::cfg{PubDir}.$fileUrl;
   } else {
-    writeDebug("url=$url does not point to the local server");
+    #writeDebug("url=$url does not point to a local asset (pattern=$localServerPattern)");
   }
 
-  writeDebug("url=$url, fileUrl=$fileUrl");
+  #writeDebug("url=$url, fileUrl=$fileUrl");
   return $fileUrl;
 }
 
@@ -208,11 +200,28 @@ sub getPubUrl {
   my $session = $Foswiki::Plugins::SESSION;
 
   if ($session->can("getPubUrl")) {
-    # pre 1.2
+    # pre 2.0
     return $session->getPubUrl(1);
   } 
 
-  # post 1.2
-  return Foswiki::Func::getPubUrlPath(absolute=>1);
+  # post 2.0
+  return Foswiki::Func::getPubUrlPath(undef, undef, undef, absolute=>1);
+}
+
+###############################################################################
+sub readFile {
+  my $name = shift;
+  my $data = '';
+  my $IN_FILE;
+
+  open($IN_FILE, '<', $name) || return '';
+  binmode $IN_FILE;
+
+  local $/ = undef;    # set to read to EOF
+  $data = <$IN_FILE>;
+  close($IN_FILE);
+
+  $data = '' unless $data;    # no undefined
+  return $data;
 }
 1;

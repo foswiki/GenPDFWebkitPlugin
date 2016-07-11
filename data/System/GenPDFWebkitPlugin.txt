@@ -1,5 +1,6 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1265996392" format="1.1" reprev="1.3" version="1.3"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1468233335" format="1.1"  version="1"}%
 ---+!! %TOPIC%
+%FORMFIELD{"Description"}%
 
 This plugin generates PDF using the [[http://wkhtmltopdf.org][Webkit rendering engine]].
 
@@ -14,41 +15,33 @@ Here's the complete Foswiki documentation in [[%SCRIPTURL{"view"}%/%SYSTEMWEB%/C
 
 ---++ Installation
 
-Download =wkhtmltopdf= from http://code.google.com/p/wkhtmltopdf/ matching your platform and install it into the =tools/= directory of your 
-Foswiki installation. In case you installed it somewhere else use =configure= to point to the proper location.
+Download =wkhtmltopdf= from http://wkhtmltopdf.org matching your platform. In =configure= make sure commandline tempalte points to the proper location
+of the =wkhtmltopdf= binary.
 
 %$INSTALL_INSTRUCTIONS%
 
 ---++ Known issues
 
-as of wkhtmltopdf-0.9.1
+as of wkhtmltopdf-0.12.3
 
-   * anchors still don't work: acroread throws a security exception
-
-as of wkhtmltopdf-0.8.3
-
-   * links don't work even local #anchors don't do it; they are only drawn viually; [[http://code.google.com/p/wkhtmltopdf/issues/detail?id=39][bug report]]
-   * the =&lt;base href="... />= html header must occur _before_ any other js or css files in the html source;
-     relative urls before are not resolved correctly (this is a general webkit problem &ndash; not a wkhtmltopdf issue)
+   * local anchors as used in a tables of content still don't work ([[https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2522][bug report]])
    * there's no way to provide a base url on the command-line if a =&lt;base ...>= tag is missing in the html source
-   * a couple of important css3 features are not implemented yet, e.g. =::after=, =::before=, =leader()=, =target-counter()=, =@page=, =string-set=, =title=, =chapter=, =hyphens=
 
-
----++ Plugin Info
-<!--
-   * Set SHORTDESCRIPTION = 'Generate PDF using Webkit';
--->
-|  Author: | Foswiki:Main.MichaelDaum |
-|  Copyright: | &copy; 2009-2014, Michael Daum http://michaeldaumconsulting.com |
-|  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
-|  Release: | %$RELEASE% |
-|  Version: | %$VERSION% |
-|  Change History: | <!-- versions below in reverse order -->&nbsp; |
+---++ Change History
+|  11 Jul 2016 | added option =pdfdisposition= to inline or redirect content |
 |  16 Dec 2014 | work around call to unofficial internal api to get absolute pub urls |
 |  12 Dec 2013 | align with changes in Foswiki:Extensions/GenPDFPrincePlugin |
 |  12 Feb 2010 | upgraded to wkhtml-0.9.1 |
 |  17 Nov 2009 | fixed use of uninitialized value |
 |  09 Sep 2009 | initial release |
-|  Home: | Foswiki:Extensions/%TOPIC% |
-|  Support: | Foswiki:Support/%TOPIC% |
 
+%META:FORM{name="PackageForm"}%
+%META:FIELD{name="Author" title="Author" value="Foswiki:Main.MichaelDaum"}%
+%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2009-2016, Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
+%META:FIELD{name="Home" title="Home" value="Foswiki:Extensions/%TOPIC%"}%
+%META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
+%META:FIELD{name="Release" title="Release" value="%$RELEASE%"}%
+%META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%TOPIC%"}%
+%META:FIELD{name="Support" title="Support" value="Foswiki:Support/%TOPIC%"}%
+%META:FIELD{name="Version" title="Version" value="%$VERSION%"}%
