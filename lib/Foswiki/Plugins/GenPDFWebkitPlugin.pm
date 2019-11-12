@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2016 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2019 Michael Daum http://michaeldaumconsulting.com
 #
 # This license applies to GenPDFWebkitPlugin *and also to any derivatives*
 #
@@ -29,8 +29,8 @@ use File::Path ();
 use Encode ();
 use File::Temp ();
 
-our $VERSION = '2.10';
-our $RELEASE = '11 Jul 2016';
+our $VERSION = '2.11';
+our $RELEASE = '12 Nov 2019';
 our $SHORTDESCRIPTION = 'Generate PDF using Webkit';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseTopic;
@@ -77,14 +77,12 @@ sub completePageHandler {
   
   my $content = $_[0];
 
-  # convert to utf8
-  $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
-  $content = Encode::encode_utf8($content);
-
-  # remove left-overs
+  # remove left-overs and some basic clean-up
   $content =~ s/([\t ]?)[ \t]*<\/?(nop|noautolink)\/?>/$1/gis;
   $content =~ s/<!--.*?-->//g;
   $content =~ s/[\0-\x08\x0B\x0C\x0E-\x1F\x7F]+/ /g;
+  $content =~ s/(<\/html>).*?$/$1/gs;
+  $content =~ s/^\s*$//gms;
 
   # clean url params in anchors as prince can't generate proper xrefs otherwise;
   # hope this gets fixed in prince at some time
@@ -94,18 +92,17 @@ sub completePageHandler {
   $content =~ s/(<link[^>]+href=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
   $content =~ s/(<img[^>]+src=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
 
-  # fix base
-  my $baseUrl = Foswiki::Func::getScriptUrl($baseWeb, $baseTopic, "view");
-  $content =~ s/^(<base +href=["'])[^'"]*(["'].*)$/$1$baseUrl$2/m;
-
   # create temp files
   my $htmlFile = new File::Temp(SUFFIX => '.html', UNLINK => (TRACE ? 0 : 1));
 
   # create output filename
   my ($pdfFilePath, $pdfFile) = getFileName($baseWeb, $baseTopic);
 
-  # creater html file
+  # convert to utf8
+  $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
+  $content = Encode::encode_utf8($content);
 
+  # creater html file
   binmode($htmlFile);
   print $htmlFile $content;
   writeDebug("htmlFile=" . $htmlFile->filename);
@@ -142,10 +139,13 @@ sub completePageHandler {
     # SMELL: prevent compression
     $ENV{'HTTP_ACCEPT_ENCODING'} = ''; 
     $ENV{'HTTP2'} = ''; 
+
   } else {
     my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
     Foswiki::Func::redirectCgiQuery($query, $url);
   }
+
+  $_[0] = ""; # don't send back anything else
 }
 
 ###############################################################################
